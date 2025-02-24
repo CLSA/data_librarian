@@ -132,7 +132,7 @@ class arguments
       basename( $_SERVER['SCRIPT_FILENAME'] ),
       !is_null( $this->version ) ? sprintf( ' version %s', $this->version ) : '',
       basename( $_SERVER['SCRIPT_FILENAME'] ),
-      0 < count( $this->option_list ) ? ' [OPTION]' : '',
+      0 < count( $this->option_list ) ? ' [OPTIONS]' : '',
       implode( ' ', $input_print_list )
     );
 
@@ -221,16 +221,16 @@ class arguments
 
         // Search for an option with either the long or short name provided.
         // This depends on whether the short (-) or long (--) prefix was used.
-        $found_short = NULL;
+        $current_option = NULL;
         if( '-' == $arg[1] )
         {
           // search for an option with the long name
-          $long = substr( $arg, 2 );
-          foreach( $this->option_list as $short => $option )
+          $long_name = substr( $arg, 2 );
+          foreach( $this->option_list as $option )
           {
-            if( $long == $option['long'] )
+            if( $long_name == $option['long'] )
             {
-              $found_short = $short;
+              $current_option = $option;
               break;
             }
           }
@@ -239,20 +239,18 @@ class arguments
         {
           // search for an option with the short name
           $short = substr( $arg, 1 );
-          if( array_key_exists( $short, $this->option_list ) ) $found_short = $short;
+          if( array_key_exists( $short, $this->option_list ) ) $current_option = $this->option_list[$short];
         }
 
-        if( is_null( $found_short ) )
+        if( is_null( $current_option ) )
         {
-          printf( "ERROR: Invalid option \"%s\" found, aborting\n\n", $long );
+          printf( "ERROR: Invalid option \"%s\" found, aborting\n\n", $arg );
           $this->usage();
           exit( 102 );
         }
 
-        $option = $this->option_list[$found_short];
-
         // if the help option has been selected then immediately print the usage and exit
-        if( 'help' == $option['long'] )
+        if( 'help' == $current_option['long'] )
         {
           $this->usage();
           exit( 0 );
@@ -260,7 +258,7 @@ class arguments
 
         // make sure the next argument is a parameter
         $parameter = NULL;
-        if( $option['parameter'] )
+        if( $current_option['parameter'] )
         {
           $next_index = $index+1;
           if( $next_index < count( $input_arguments ) )
@@ -283,7 +281,7 @@ class arguments
 
         // Store the parameter under the long name, or store true if there is no parameter.
         // This will indicate that the option has been selected (but no arguments are required).
-        $parsed_arguments['option_list'][$option['long']] = is_null( $parameter ) ? true : $parameter;
+        $parsed_arguments['option_list'][$current_option['long']] = is_null( $parameter ) ? true : $parameter;
       }
       else // this is not an argument, so it must be an input
       {
