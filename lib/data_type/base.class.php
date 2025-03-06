@@ -254,22 +254,32 @@ abstract class base
       return false;
     }
 
-    $interview_id = self::assert_alder_interview(
+    // when fetching hip data also look for frax data
+    $frax_data = NULL;
+    if( 'hip' == $type )
+    {
+      $frax_metadata = self::get_pine_metadata( $cenozo_db, $phase, $uid, 'FRAX' );
+      $frax_obj = json_decode( $metadata['value'] );
+      if( is_object( $frax_obj ) && property_exists( $frax_obj, 'metadata' ) ) $frax_data = $frax_obj->metadata;
+    }
+
+    $interview_id = self::upsert_alder_interview(
       $cenozo_db,
       $metadata['participant_id'],
       $metadata['study_phase_id'],
       $metadata['site_id'],
       $obj->session->barcode,
       $metadata['start_datetime'],
-      $metadata['end_datetime']
+      $metadata['end_datetime'],
+      $frax_data
     );
     if( false === $interview_id )
     {
-      output( sprintf( 'Unable to read, update or create interview data from Alder for %s', $uid ) );
+      output( sprintf( 'Unable to upsert interview data from Alder for %s', $uid ) );
       return false;
     }
 
-    $exam_id = self::assert_alder_exam(
+    $exam_id = self::upsert_alder_exam(
       $cenozo_db,
       $interview_id,
       $type,
@@ -279,13 +289,13 @@ abstract class base
     );
     if( false === $exam_id )
     {
-      output( sprintf( 'Unable to read, update or create exam data from Alder for %s', $uid ) );
+      output( sprintf( 'Unable to upsert exam data from Alder for %s', $uid ) );
       return false;
     }
 
-    if( false === self::assert_alder_image( $cenozo_db, $exam_id, $filename ) )
+    if( false === self::upsert_alder_image( $cenozo_db, $exam_id, $filename ) )
     {
-      output( sprintf( 'Unable to read, update or create image "%s" from Alder for %s', $filename, $uid ) );
+      output( sprintf( 'Unable to upsert image "%s" from Alder for %s', $filename, $uid ) );
       return false;
     }
 
@@ -303,8 +313,10 @@ abstract class base
    * @param string $end_datetime
    * @return integer (NULL if record cannot be created, false if there is an error)
    */
-  public static function assert_alder_interview(
-    $cenozo_db, $participant_id, $study_phase_id, $site_id, $token, $start_datetime, $end_datetime
+  public static function upsert_alder_interview(
+    $cenozo_db, $participant_id, $study_phase_id,
+    $site_id, $token, $start_datetime, $end_datetime,
+    $frax_data = NULL
   ) {
     if( !defined( 'ALDER_DB_DATABASE' ) ) return NULL;
 
@@ -320,24 +332,45 @@ abstract class base
     ) );
     if( false === $result ) return false;
 
+    // build the data to upsert (which may include frax inputs)
+    $upsert_data = [
+      sprintf( 'site_id = %d', $site_id ),
+      sprintf( 'token = "%s"', $cenozo_db->real_escape_string( $token ) ),
+      sprintf( 'start_datetime = "%s"', $cenozo_db->real_escape_string( $start_datetime ) ),
+      sprintf( 'end_datetime = "%s"', $cenozo_db->real_escape_string( $end_datetime ) ),
+    ];
+
+    if( is_object( $frax_data ) )
+    {
+      $frax_column_list = [
+        'previous_fracture',
+        'parent_hip_fracture',
+        'current_smoker',
+        'glucocorticoid',
+        'rheumatoid_arthritis',
+        'secondary_osteoporosis',
+        'alcohol'
+      ];
+      foreach( $frax_column_list as $column )
+      {
+        if( property_exists( $frax_data, $column ) )
+        {
+          $upsert_data[] = sprintf( '%s = %d', $column, $frax_data->$column );
+        }
+      }
+    }
+
     $row = $result->fetch_assoc();
     $result->free();
     if( !is_null( $row ) )
     {
       // update the interview details
       $result = TEST_ONLY ? true : $cenozo_db->query( sprintf(
-        'UPDATE %s.interview SET '.
-          'site_id = %d, '.
-          'token = "%s", '.
-          'start_datetime = "%s", '.
-          'end_datetime = "%s" '.
+        'UPDATE %s.interview SET %s'.
         'WHERE participant_id = %d '.
         'AND study_phase_id = %d',
         ALDER_DB_DATABASE,
-        $site_id,
-        $cenozo_db->real_escape_string( $token ),
-        $cenozo_db->real_escape_string( $start_datetime ),
-        $cenozo_db->real_escape_string( $end_datetime ),
+        implode( ', ', $upsert_data ),
         $participant_id,
         $study_phase_id
       ) );
@@ -353,17 +386,11 @@ abstract class base
         'INSERT IGNORE INTO %s.interview SET '.
           'participant_id = %d, '.
           'study_phase_id = %d, '.
-          'site_id = %d, '.
-          'token = "%s", '.
-          'start_datetime = "%s", '.
-          'end_datetime = "%s"',
+          '%s',
         ALDER_DB_DATABASE,
         $participant_id,
         $study_phase_id,
-        $site_id,
-        $cenozo_db->real_escape_string( $token ),
-        $cenozo_db->real_escape_string( $start_datetime ),
-        $cenozo_db->real_escape_string( $end_datetime )
+        implode( ', ', $upsert_data )
       ) );
       return false === $result ? false : $cenozo_db->insert_id;
     }
@@ -381,7 +408,7 @@ abstract class base
    * @param string $datetime
    * @return integer (NULL if record cannot be created, false if there is an error)
    */
-  public static function assert_alder_exam( $cenozo_db, $interview_id, $type, $side, $interviewer, $datetime )
+  public static function upsert_alder_exam( $cenozo_db, $interview_id, $type, $side, $interviewer, $datetime )
   {
     if( !defined( 'ALDER_DB_DATABASE' ) ) return NULL;
 
@@ -454,7 +481,7 @@ abstract class base
    * @param string $filename
    * @return integer (NULL if record cannot be created, false if there is an error)
    */
-  public static function assert_alder_image( $cenozo_db, $exam_id, $filename )
+  public static function upsert_alder_image( $cenozo_db, $exam_id, $filename )
   {
     if( !defined( 'ALDER_DB_DATABASE' ) ) return NULL;
 

@@ -240,7 +240,7 @@ class cimt extends base
 
             if( is_null( $respondent['interview_id'] ) )
             {
-              $respondent['interview_id'] = static::assert_alder_interview(
+              $respondent['interview_id'] = static::upsert_alder_interview(
                 $cenozo_db,
                 $respondent['participant_id'],
                 $respondent['study_phase_id'],
@@ -261,7 +261,7 @@ class cimt extends base
               // only create the exam that the image belongs to
               if( !is_null( $exam_id ) || $side != $image_side ) continue;
 
-              $respondent['exam_list'][$side] = static::assert_alder_exam(
+              $respondent['exam_list'][$side] = static::upsert_alder_exam(
                 $cenozo_db,
                 $respondent['interview_id'],
                 'carotid_intima',
@@ -280,7 +280,7 @@ class cimt extends base
             // only insert still images
             if( !TEST_ONLY && preg_match( '/still/', $pf['link'] ) )
             {
-              $image_id = static::assert_alder_image(
+              $image_id = static::upsert_alder_image(
                 $cenozo_db,
                 $respondent['exam_list'][$image_side],
                 $pf['link']
