@@ -132,8 +132,8 @@ class us_echo extends base
     output( sprintf(
       'Done, %d files %stransferred from %d directories',
       $file_count,
-      count( array_unique( $processed_uid_list ) ),
-      TEST_ONLY ? 'would be ' : ''
+      TEST_ONLY ? 'would be ' : '',
+      count( array_unique( $processed_uid_list ) )
     ) );
   }
 
