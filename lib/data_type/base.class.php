@@ -259,7 +259,7 @@ abstract class base
     if( 'hip' == $type )
     {
       $frax_metadata = self::get_pine_metadata( $cenozo_db, $phase, $uid, 'FRAX' );
-      $frax_obj = json_decode( $metadata['value'] );
+      $frax_obj = json_decode( $frax_metadata['value'] );
       if( is_object( $frax_obj ) && property_exists( $frax_obj, 'metadata' ) ) $frax_data = $frax_obj->metadata;
     }
 
@@ -366,7 +366,7 @@ abstract class base
     {
       // update the interview details
       $result = TEST_ONLY ? true : $cenozo_db->query( sprintf(
-        'UPDATE %s.interview SET %s'.
+        'UPDATE %s.interview SET %s '.
         'WHERE participant_id = %d '.
         'AND study_phase_id = %d',
         ALDER_DB_DATABASE,
