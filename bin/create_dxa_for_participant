@@ -37,10 +37,15 @@ function create_dxa_for_participant( $type, $identifier, $dicom_filename, $image
   {
     // use the default measurements
   }
-  // hip scans have a height of 1830 or 1930, so accept anything in between
+  // old hip scans have a height of 1830 or 1930, so accept anything in between
   else if( 'hip' == $type && 1200 == $width && ( ( 1830 <= $height && $height <= 1964 ) || 1320 == $height ) )
   {
     // use the default measurements
+  }
+  // re-analysed scans from the new apex software will have a height of 1420 and width of 1200
+  else if( 'hip' == $type && 1200 == $width && 1420 == $height )
+  {
+    $redact['box_width'] += 45;
   }
   else if( 'wbody' == $type && 1440 == $width && 1620 == $height )
   {
