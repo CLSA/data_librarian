@@ -93,7 +93,7 @@ class dxa extends base
         $uid = $matches[2];
         $question = 'DXA2';
         $type = 'wbody';
-        $side = '2' == $matches[3] ? 'none' : NULL;
+        $side = 'none';
 
         $new_filename = sprintf( 'dxa_wbody_%s.dcm', '1' == $matches[3] ? 'bmd' : 'bca' );
       }
