@@ -150,9 +150,16 @@ function archive( $path )
  */
 function purge( $path, $days_old )
 {
-  // delete all files older than the input argument
-  $zip_glob = preg_replace( '#/$#', '.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].zip', $path );
-  $command = sprintf( 'find "%s" -mtime +%d -exec rm {} \;', $zip_glob, $days_old );
+  $parent_dir = dirname( $path );
+  $child_dir = basename( $path );
+
+  // delete all zip files older than the input argument
+  $command = sprintf(
+    'find "%s" -name "%s.*.zip" -type f -mtime +%d -exec rm {} \;',
+    $parent_dir,
+    $child_dir,
+    $days_old
+  );
 
   $result_code = 0;
   $output = NULL;
@@ -252,8 +259,10 @@ if( !is_null( $purge_days_old ) && (
 if( !$purge_only )
 {
   !DEBUG && output( sprintf( 'Transfering files from "%s"', $local_dir ) );
-  if( !rsync( $local_dir, $remote_dir, $port, $timeout ) ) exit( 11 );
-  if( !archive( $local_dir ) ) exit( 12 );
+  if( rsync( $local_dir, $remote_dir, $port, $timeout ) )
+  {
+    if( !archive( $local_dir ) ) exit( 12 );
+  }
 }
 if( !is_null( $purge_days_old ) )
 {
