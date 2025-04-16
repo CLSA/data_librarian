@@ -74,6 +74,15 @@ class actigraph extends base
         }
       }
 
+      $destination_dir = sprintf(
+        '%s/%s/%s/%s/actigraph/%s',
+        DATA_DIR,
+        RAW_DIR,
+        $study,
+        $phase,
+        $uid
+      );
+
       if( !in_array( $type, ['thigh', 'wrist'] ) )
       {
         $reason = sprintf(
@@ -82,6 +91,21 @@ class actigraph extends base
         );
         self::move_from_temporary_to_invalid( $filename, $reason );
         continue;
+      }
+      else
+      {
+        // check if a file of that type already exists
+        $existing_files = glob( sprintf( '%s/%s*\.gt3x', $destination_dir, $type ) );
+        if( count( $existing_files ) )
+        {
+          $reason = sprintf(
+            'File type "%s" already exists here "%s".',
+            $type,
+            current( $existing_files )
+          );
+          self::move_from_temporary_to_invalid( $filename, $reason );
+          continue;
+        }
       }
 
       // make sure the date aligns with the participant's events
@@ -115,17 +139,9 @@ class actigraph extends base
         continue;
       }
 
-      $destination_directory = sprintf(
-        '%s/%s/%s/%s/actigraph/%s',
-        DATA_DIR,
-        RAW_DIR,
-        $study,
-        $phase,
-        $uid
-      );
-      $destination = sprintf( '%s/%s_%s.gt3x', $destination_directory, $type, $date );
+      $destination = sprintf( '%s/%s_%s.gt3x', $destination_dir, $type, $date );
 
-      if( self::process_file( $destination_directory, $filename, $destination ) )
+      if( self::process_file( $destination_dir, $filename, $destination ) )
       {
         $processed_uid_list[] = $uid;
         $file_count++;
