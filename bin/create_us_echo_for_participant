@@ -1,0 +1,128 @@
+#!/usr/bin/php
+<?php
+require_once( __DIR__.'/../settings.ini.php' );
+require_once( __DIR__.'/../lib/util.class.php' );
+require_once( __DIR__.'/../lib/arguments.class.php' );
+
+/**
+ * Generates US ECHO images appropriate for release to participants
+ * @param string $phase The phase of the study
+ * @param string $echo_id The participant's EchoImageIDs_UBC identifier
+ * @param string $path The directory to write the files into
+ */
+function create_us_echo_for_participant( $phase, $echo_id, $path )
+{
+  // check that the phase is a number
+  if( (string)(int)$phase !== (string)$phase )
+  {
+    out( 'ERROR: Phase must be represented by a number' );
+    exit( 32 );
+  }
+
+  // only connect to the database if we have to
+  try
+  {
+    $cenozo_db = util::get_cenozo_db();
+  }
+  catch( \Exception $e )
+  {
+    out( 'ERROR: Failed to open required connection to cenozo database.' );
+    exit( 31 );
+  }
+
+  // make sure the echo ID is valid
+  $result = $cenozo_db->query( sprintf(
+    'select uid '.
+    'from participant '.
+    'join participant_identifier on participant.id = participant_identifier.participant_id '.
+    'join identifier on participant_identifier.identifier_id = identifier.id '.
+    'where identifier.name = "EchoImageIDs_UBC" '.
+    'and participant_identifier.value = "%s"',
+    $cenozo_db->real_escape_string( $echo_id )
+  ) );
+  $cenozo_db->close();
+
+  if( false === $result )
+  {
+    out( sprintf( 'ERROR: Unable to find participant with EchoImageIDs_UBC identifier "%s"', $echo_id ) );
+    exit( 32 );
+  }
+
+  $row = $result->fetch_assoc();
+  $result->free();
+
+  if( is_null( $row ) )
+  {
+    out( sprintf( 'ERROR: Unable to find participant with EchoImageIDs_UBC identifier "%s"', $echo_id ) );
+    exit( 33 );
+  }
+
+  $uid = $row['uid'];
+
+  // get a list of files for this participant and phase
+  $file_list = [];
+  foreach( glob( sprintf( '%s/%s/clsa/%d/us_echo/%s/*.dcm', DATA_DIR, RAW_DIR, $phase, $uid ) ) as $filename )
+  {
+    if( file_exists( $filename ) && filesize( $filename ) ) $file_list[] = $filename;
+  }
+
+  if( 0 == count( $file_list ) )
+  {
+    out( sprintf( 'The participant you have selected has no phase %d US ECHO images', $phase ) );
+    exit( 34 );
+  }
+
+  // create the destination path if it doesn't already exist
+  if( !file_exists( $path ) ) mkdir( $path );
+
+  $total_files = 0;
+  foreach( $file_list as $filename )
+  {
+    $anon_filename = sprintf( '%s/%s', $path, basename( $filename ) );
+    
+    // create a copy of the file
+    copy( $filename, $anon_filename );
+
+    // anonymize the file using the echo id
+    $output = NULL;
+    $result_code = NULL;
+    exec(
+      sprintf(
+        '%s/anonymize -t us_echo %s "Canadian Longitudinal Study on Aging" "%s"',
+        __DIR__,
+        $anon_filename,
+        $echo_id
+      ),
+      $output,
+      $result_code
+    );
+
+    out( implode( "\n", $output ) );
+    if( 0 == $result_code ) $total_files++;
+  }
+
+  return sprintf( "Done, %d files written to %s", $total_files, $path );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// build the command argument details, then parse the passed args
+$arguments = new arguments( __FILE__ );
+$arguments->set_description(
+  "Generates a copy of the US ECHO images for release to a participant\n".
+  "This script will anonymize all US ECHO images for a particular phase and participant using the ".
+  "EchoImageIDs_UBC identifier (the same used when sending images to UBC for analysis)."
+);
+$arguments->add_input( 'PHASE', 'The study phase to get the images from (5, 6, etc)' );
+$arguments->add_input( 'ECHO_ID', 'The ECHO_ID of the participant to get the images for' );
+$arguments->add_input( 'PATH', 'Where to write files (default is the current directory)', true );
+
+$args = $arguments->parse_arguments( $argv );
+
+$phase = $args['input_list']['PHASE'];
+$echo_id = $args['input_list']['ECHO_ID'];
+$path = array_key_exists( 'PATH', $args['input_list'] ) ? $args['input_list']['PATH'] : '.';
+
+
+$result = create_us_echo_for_participant( $phase, $echo_id, $path );
+if( is_string( $result ) ) printf( "%s\n", $result );

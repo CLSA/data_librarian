@@ -158,7 +158,11 @@ class us_echo extends base
     $modify_list = [];
     foreach( $tag_list as $tag => $value )
     {
-      $modify_list[] = sprintf( '-i "(%s)%s"', $tag, is_null( $value ) ? '' : sprintf( '=%s', $value ) );
+      $modify_list[] = (
+        '0010,0020' == $tag ?
+        sprintf( '-ma "(%s)=%s"', $tag, $value ) :
+        sprintf( '-i "(%s)%s"', $tag, is_null( $value ) ? '' : sprintf( '=%s', $value ) )
+      );
     }
 
     $command = sprintf(
