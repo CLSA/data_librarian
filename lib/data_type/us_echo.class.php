@@ -101,7 +101,7 @@ class us_echo extends base
         $result_code = self::pacs_transfer( $anon_filename, TEST_ONLY );
         if( 0 != $result_code )
         {
-          output( sprintf(
+          warning( sprintf(
             'Unable to transfer anonymized ECHO file "%s" to remote PACS server (code %d).',
             $anon_filename,
             $result_code

@@ -210,7 +210,7 @@ abstract class base
     $metadata = NULL;
     if( false === $result )
     {
-      output( sprintf( 'Unable to get %s data from Pine for %s (1)', $question, $uid ) );
+      warning( sprintf( 'Unable to get %s data from Pine for %s (1)', $question, $uid ) );
     }
     else
     {
@@ -218,7 +218,7 @@ abstract class base
       $result->free();
       if( is_null( $metadata ) )
       {
-        output( sprintf( 'Unable to get %s data from Pine for %s (2)', $question, $uid ) );
+        warning( sprintf( 'Unable to get %s data from Pine for %s (2)', $question, $uid ) );
       }
     }
 
@@ -250,7 +250,7 @@ abstract class base
       !property_exists( $obj->session, 'interviewer' ) ||
       !property_exists( $obj->session, 'end_time' )
     ) {
-      output( sprintf( 'No result data in %s metadata from Pine for %s', $question, $uid ) );
+      warning( sprintf( 'No result data in %s metadata from Pine for %s', $question, $uid ) );
       return false;
     }
 
@@ -259,8 +259,11 @@ abstract class base
     if( 'hip' == $type )
     {
       $frax_metadata = self::get_pine_metadata( $cenozo_db, $phase, $uid, 'FRAX' );
-      $frax_obj = json_decode( $frax_metadata['value'] );
-      if( is_object( $frax_obj ) && property_exists( $frax_obj, 'metadata' ) ) $frax_data = $frax_obj->metadata;
+      if( !is_null( $frax_metadata ) )
+      {
+        $frax_obj = json_decode( $frax_metadata['value'] );
+        if( is_object( $frax_obj ) && property_exists( $frax_obj, 'metadata' ) ) $frax_data = $frax_obj->metadata;
+      }
     }
 
     $interview_id = self::upsert_alder_interview(
@@ -275,7 +278,7 @@ abstract class base
     );
     if( false === $interview_id )
     {
-      output( sprintf( 'Unable to upsert interview data from Alder for %s', $uid ) );
+      warning( sprintf( 'Unable to upsert interview data from Alder for %s', $uid ) );
       return false;
     }
 
@@ -289,13 +292,13 @@ abstract class base
     );
     if( false === $exam_id )
     {
-      output( sprintf( 'Unable to upsert exam data from Alder for %s', $uid ) );
+      warning( sprintf( 'Unable to upsert exam data from Alder for %s', $uid ) );
       return false;
     }
 
     if( false === self::upsert_alder_image( $cenozo_db, $exam_id, $filename ) )
     {
-      output( sprintf( 'Unable to upsert image "%s" from Alder for %s', $filename, $uid ) );
+      warning( sprintf( 'Unable to upsert image "%s" from Alder for %s', $filename, $uid ) );
       return false;
     }
 

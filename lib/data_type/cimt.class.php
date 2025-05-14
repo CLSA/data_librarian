@@ -77,7 +77,7 @@ class cimt extends base
           !property_exists( $obj, 'results' ) ||
           !is_array( $obj->results )
         ) {
-          output( sprintf( 'No result data in CIMT metadata from Pine for %s', $uid ) );
+          warning( sprintf( 'No result data in CIMT metadata from Pine for %s', $uid ) );
           continue;
         }
 
@@ -251,7 +251,7 @@ class cimt extends base
               );
               if( false === $respondent['interview_id'] )
               {
-                output( sprintf( 'Unable to read or create interview data from Alder for %s', $uid ) );
+                warning( sprintf( 'Unable to read or create interview data from Alder for %s', $uid ) );
                 continue;
               }
             }
@@ -272,7 +272,7 @@ class cimt extends base
 
               if( false === $respondent['exam_list'][$side] )
               {
-                output( sprintf( 'Unable to read or create exam data from Alder for %s', $uid ) );
+                warning( sprintf( 'Unable to read or create exam data from Alder for %s', $uid ) );
                 continue;
               }
             }
@@ -287,7 +287,7 @@ class cimt extends base
               );
               if( false === $image_id )
               {
-                output( sprintf( 'Unable to read or create image "%s" from Alder for %s', $pf['link'], $uid ) );
+                warning( sprintf( 'Unable to read or create image "%s" from Alder for %s', $pf['link'], $uid ) );
               }
             }
 

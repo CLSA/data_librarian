@@ -5,6 +5,7 @@ ini_set( 'date.timezone', 'US/Eastern' );
 
 function out( $message ) { if( !defined( 'DEBUG' ) || !DEBUG ) printf( "%s\n", $message ); }
 function output( $message ) { printf( "%s> %s\n", date( 'Y-m-d (D) H:i:s' ), $message ); }
+function warning( $message ) { output( sprintf( "%WARNING: %s", $message ) ); }
 function fatal_error( $message, $code ) { output( sprintf( 'ERROR: %s', $message ) ); exit( $code ); }
 
 /**
