@@ -78,24 +78,24 @@ class us_echo extends base
 
     foreach( $process_file_list as $uid => $pf_list )
     {
+      // get the site name from the pine metadata and include it in anonymization
+      $metadata = static::get_pine_metadata( $cenozo_db, $phase, $uid, 'ECHO' );
+      $organization = sprintf(
+        'CLSA (%s)',
+        !is_null( $metadata ) && array_key_exists( 'site', $metadata ) ? $metadata['site'] : 'unknown'
+      );
+
       // process each file, one at a time
       foreach( $pf_list as $pf_index => $pf )
       {
         // make a temporary copy of the file, anonymize it and send it to the remote PACS server
         $anon_filename = sprintf(
-          '%s/temp_%s_%s.dcm',
+          '%s/pacs/temp_%s_%s.dcm',
           DATA_DIR,
           bin2hex( openssl_random_pseudo_bytes( 2 ) ),
           bin2hex( openssl_random_pseudo_bytes( 2 ) )
         );
         self::copy( $pf['source'], $anon_filename );
-
-        // get the site name from the pine metadata and include it in anonymization
-        $metadata = static::get_pine_metadata( $cenozo_db, $phase, $uid, 'ECHO' );
-        $organization = sprintf(
-          'CLSA (%s)',
-          !is_null( $metadata ) && array_key_exists( 'site', $metadata ) ? $metadata['site'] : 'unknown'
-        );
 
         self::anonymize( $anon_filename, $organization, $identifier_list[$uid], TEST_ONLY );
         $result_code = self::pacs_transfer( $anon_filename, TEST_ONLY );
