@@ -47,6 +47,10 @@ function create_dxa_for_participant( $type, $identifier, $dicom_filename, $image
   {
     $redact['box_width'] += 45;
   }
+  else if( 'spine' == $type && 1200 == $width && 1300 <= $height && $height <= 1700 )
+  {
+    // use the default measurements
+  }
   else if( 'wbody' == $type && 1440 == $width && 1620 == $height )
   {
     // The redact needs to be a bit higher, and much wider
