@@ -219,13 +219,15 @@ class dxa extends base
 
     // need to create redacted participant versions of hip, forearm and BMD images
     $matches = [];
-    if( preg_match( '#/([^/]+)/(dxa_hip|dxa_forearm|dxa_wbody_bmd)#', $filename, $matches ) )
+    if( preg_match( '#/([^/]+)/(dxa_hip|dxa_forearm|dxa_spine|dxa_wbody_bmd)#', $filename, $matches ) )
     {
       $uid = $matches[1];
       $type = $matches[2];
       if( 'dxa_hip' == $type ) $type = 'hip';
       else if( 'dxa_forearm' == $type ) $type = 'forearm';
+      else if( 'dxa_spine' == $type ) $type = 'spine';
       else $type = 'wbody';
+
       $participant_image_filename = preg_replace(
         [sprintf( '#/%s/#', RAW_DIR ), '#\.dcm$#'],
         [sprintf( '/%s/', SUPPLEMENTARY_DIR ), '.participant.jpeg'],
