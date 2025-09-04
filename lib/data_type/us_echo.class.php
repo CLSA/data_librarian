@@ -149,10 +149,13 @@ class us_echo extends base
       '0008,1010' => '',            // Station Name
       '0008,0050' => $organization, // Accession Number (because Institution Name can't be seen by end users)
       '0010,0010' => '',            // Patient Name
+      '0010,0030' => '',            // Patient Birth Date
       '0010,1000' => '',            // Other Patient IDs
       '0018,1000' => '',            // Device Serial Number
       '0008,1010' => 'Vivid iq',    // Station Name
       '0010,0020' => $identifier,   // Patient ID
+      '6005,1010' => '',            // Custom tag containing XML data
+      '6005,1030' => '',            // Custom tag containing XML data
     ];
 
     $modify_list = [];
