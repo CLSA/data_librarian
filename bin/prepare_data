@@ -13,10 +13,11 @@ require_once( __DIR__.'/../lib/data_type/us_echo.class.php' );
  * @param string $release_name The name of the release
  * @param string $data_path The relative path to the data to prepare (study/phase/category)
  * @param string $file_glob The relative path to the data to prepare (study/phase/category)
+ * @param integer $limit Whether to limit the number of participants (which are randomly selected)
  * @param boolean $keep_files Whether to keep files which already exist
  * @param string $identifier_filename The name of the CSV file containing identifiers
  */
-function prepare_data( $release_name, $data_path, $file_glob, $keep_files, $identifier_filename )
+function prepare_data( $release_name, $data_path, $file_glob, $keep_files, $limit, $identifier_filename )
 {
   // make sure the data path exists
   $data_path = sprintf( '%s/%s', DATA_DIR, $data_path );
@@ -41,11 +42,17 @@ function prepare_data( $release_name, $data_path, $file_glob, $keep_files, $iden
     $potential_participants
   ) );
 
+  // first read the csv file into an array
+  $identifiers = [];
+  while( ($row = fgetcsv( $identifier_file )) !== false ) $identifiers[] = $row;
+
+  // if limiting the participants randomize the identifiers array so they are randomly selected from
+  if( !is_null( $limit ) ) shuffle( $identifiers );
+
   // loop over every line in the file
-  $csv_count = 0;
   $participant_list = [];
   $file_count = 0;
-  while( ($row = fgetcsv( $identifier_file )) !== false )
+  foreach( $identifiers as $row )
   {
     $uid = $row[0];
 
@@ -73,14 +80,18 @@ function prepare_data( $release_name, $data_path, $file_glob, $keep_files, $iden
         $count = count( $files );
         $file_count += $count;
         VERBOSE && output( sprintf( 'CSV row %s: %d files found', $uid, $count ) );
+
+        if( !is_null( $limit ) && count( $participant_list ) == $limit )
+        {
+          VERBOSE && output( sprintf( 'Limit of %d participants found, stopping search', $limit ) );
+          break;
+        }
       }
       else
       {
         VERBOSE && output( sprintf( 'CSV row %s: no non-empty files found', $uid ) );
       }
     }
-
-    $csv_count++;
   }
   fclose( $identifier_file );
 
@@ -209,6 +220,12 @@ $arguments->set_description(
 $arguments->add_option( 'v', 'verbose', 'Shows more details when running the script' );
 $arguments->add_option( 'g', 'glob', 'Restrict to files matching a particular glob (eg: *.dcm)', true, '*' );
 $arguments->add_option( 'k', 'keep_files', 'Keep files which have already been copied.' );
+$arguments->add_option(
+  'l',
+  'limit',
+  'The number of participants to limit the release to (which are randomly selected).',
+  true
+);
 $arguments->add_input( 'RELEASE_NAME', 'The name of the release where files will be copied to' );
 $arguments->add_input(
   'DATA_PATH',
@@ -221,8 +238,9 @@ $args = $arguments->parse_arguments( $argv );
 define( 'VERBOSE', array_key_exists( 'verbose', $args['option_list'] ) );
 $file_glob = $args['option_list']['glob'];
 $keep_files = array_key_exists( 'keep_files', $args['option_list'] );
+$limit = array_key_exists( 'limit', $args['option_list'] ) ? intval( $args['option_list']['limit'] ) : NULL;
 $release_name = $args['input_list']['RELEASE_NAME'];
 $data_path = $args['input_list']['DATA_PATH'];
 $identifier_filename = $args['input_list']['IDENTIFIER_FILENAME'];
 
-prepare_data( $release_name, $data_path, $file_glob, $keep_files, $identifier_filename );
+prepare_data( $release_name, $data_path, $file_glob, $keep_files, $limit, $identifier_filename );

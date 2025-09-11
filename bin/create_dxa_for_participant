@@ -84,7 +84,7 @@ function create_dxa_for_participant( $type, $identifier, $dicom_filename, $image
   }
   else
   {
-    return sprintf( 'Unexected type/geometry: %s (%d, %d)', $type, $width, $height );
+    return sprintf( 'Unexpected type/geometry: %s (%d, %d)', $type, $width, $height );
   }
 
   $redact_box_list = [

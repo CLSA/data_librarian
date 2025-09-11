@@ -16,12 +16,18 @@ $arguments->set_description(
 $arguments->add_option( 'v', 'verbose', 'Shows more details when running the script' );
 $arguments->add_option( 'k', 'keep_files', 'Keep files which have already been copied.' );
 $arguments->add_option(
+  'l',
+  'limit',
+  'The number of participants to limit the release to (which are randomly selected).',
+  true
+);
+$arguments->add_option(
   'c',
   'data_category',
   'Must be one of the following:'.
     "\n       DXA".
     "\n         dxa_forearm_bl, dxa_forearm_f1, dxa_forearm_f2, dxa_forearm_f3 (jpeg images, right and left)".
-    "\n         dxa_hip_bl, dxa_hip_f1 (reanalysed jpeg images, right and left)".
+    "\n         dxa_hip_bl, dxa_hip_f1, dxa_hip_f2 (reanalysed jpeg images, right and left)".
     "\n         dxa_lateral_bl, dxa_lateral_f1, dxa_lateral_f2, dxa_lateral_f3 (original dcm file)".
     "\n         dxa_wbody_bl (reanalysed jpeg images, BCA and BMD)".
     "\n       CAROTID INTIMA".
@@ -43,9 +49,10 @@ $arguments->add_input( 'IDENTIFIER_FILENAME', 'The CSV file containing the CLSA 
 
 $args = $arguments->parse_arguments( $argv );
 
-define( 'VERBOSE', array_key_exists( 'verbose', $args['option_list'] ) );
+$verbose = array_key_exists( 'verbose', $args['option_list'] );
 $data_category = $args['option_list']['data_category'];
 $keep_files = array_key_exists( 'keep_files', $args['option_list'] );
+$limit = array_key_exists( 'limit', $args['option_list'] ) ? intval( $args['option_list']['limit'] ) : NULL;
 $release_name = $args['input_list']['RELEASE_NAME'];
 $identifier_filename = $args['input_list']['IDENTIFIER_FILENAME'];
 
@@ -59,6 +66,7 @@ else if( 'dxa_forearm_f2' == $data_category ) { $type = 'forearm'; $phase = 3; }
 else if( 'dxa_forearm_f3' == $data_category ) { $type = 'forearm'; $phase = 4; }
 else if( 'dxa_hip_bl' == $data_category ) { $type = 'hip'; $phase = 1; }
 else if( 'dxa_hip_f1' == $data_category ) { $type = 'hip'; $phase = 2; }
+else if( 'dxa_hip_f2' == $data_category ) { $type = 'hip'; $phase = 3; }
 else if( 'dxa_lateral_bl' == $data_category ) { $type = 'lateral'; $phase = 1; }
 else if( 'dxa_lateral_f1' == $data_category ) { $type = 'lateral'; $phase = 2; }
 else if( 'dxa_lateral_f2' == $data_category ) { $type = 'lateral'; $phase = 3; }
@@ -102,174 +110,194 @@ else
   die();
 }
 
+$option_string = '';
+if( $verbose ) $option_string .= ' -v';
+if( $keep_files ) $option_string .= ' -k';
+if( !is_null( $limit ) ) $option_string .= sprintf( ' -l %d', $limit );
+
 // Implement any new data categories here
 if( 'forearm' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_forearm_left.jpeg" %s',
+    '%s/prepare_data %s %s %s -g "dxa_forearm_left.jpeg"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
-  passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_forearm_right.jpeg" %s',
-    __DIR__,
-    $release_name,
-    $data_path,
-    $identifier_filename,
-    VERBOSE ? '-v' : ''
-  ) );
+
+  // only prepare left scans when limiting the number of participants
+  if( is_null( $limit ) )
+  {
+    passthru( sprintf(
+      '%s/prepare_data %s %s %s -g "dxa_forearm_right.jpeg"%s',
+      __DIR__,
+      $release_name,
+      $data_path,
+      $identifier_filename,
+      $option_string
+    ) );
+  }
 }
 else if( 'hip' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_hip_left.reanalysed.jpeg" %s',
+    '%s/prepare_data %s %s %s -g "dxa_hip_left.reanalysed.jpeg"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
-  passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_hip_right.reanalysed.jpeg" %s',
-    __DIR__,
-    $release_name,
-    $data_path,
-    $identifier_filename,
-    VERBOSE ? '-v' : ''
-  ) );
+
+  // only prepare left scans when limiting the number of participants
+  if( is_null( $limit ) )
+  {
+    passthru( sprintf(
+      '%s/prepare_data %s %s %s -g "dxa_hip_right.reanalysed.jpeg"%s',
+      __DIR__,
+      $release_name,
+      $data_path,
+      $identifier_filename,
+      $option_string
+    ) );
+  }
 }
 else if( 'lateral' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/dxa', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_lateral.dcm" %s',
+    '%s/prepare_data %s %s %s -g "dxa_lateral.dcm"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'wbody' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_wbody_bca.reanalysed.jpeg" %s',
+    '%s/prepare_data %s %s %s -g "dxa_wbody_bca.reanalysed.jpeg"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
-  passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_wbody_bmd.reanalysed.jpeg" %s',
-    __DIR__,
-    $release_name,
-    $data_path,
-    $identifier_filename,
-    VERBOSE ? '-v' : ''
-  ) );
+
+  // only prepare left scans when limiting the number of participants
+  if( is_null( $limit ) )
+  {
+    passthru( sprintf(
+      '%s/prepare_data %s %s %s -g "dxa_wbody_bmd.reanalysed.jpeg"%s',
+      __DIR__,
+      $release_name,
+      $data_path,
+      $identifier_filename,
+      $option_string
+    ) );
+  }
 }
 else if( 'cimt_cineloop' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/carotid_intima', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "%s_[lru]*.dcm.gz" %s',
+    '%s/prepare_data %s %s %s -g "%s_[lru]*.dcm.gz"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
     1 == $phase ? 'cineloop[0-9]' : 'cineloop',
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'cimt_report' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/carotid_intima', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "report_[lru]*.dcm.gz" %s',
+    '%s/prepare_data %s %s %s -g "report_[lru]*.dcm.gz"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'cimt_still' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/carotid_intima', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "%s_[lru]*.dcm.gz" %s',
+    '%s/prepare_data %s %s %s -g "%s_[lru]*.dcm.gz"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
     1 == $phase ? 'still' : 'still[123]',
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'ecg' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/ecg', SUPPLEMENTARY_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "ecg.jpeg" %s',
+    '%s/prepare_data %s %s %s -g "ecg.jpeg"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'ecg_raw' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/ecg', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "ecg.xml" %s',
+    '%s/prepare_data %s %s %s -g "ecg.xml"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'retinal' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/retinal', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "retinal_[lru]*.jpeg" %s',
+    '%s/prepare_data %s %s %s -g "retinal_[lru]*.jpeg"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'spirometry' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/spirometry', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "report.pdf" %s',
+    '%s/prepare_data %s %s %s -g "report.pdf"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
 else if( 'spirometry_raw' == $type )
 {
   $data_path = sprintf( '%s/clsa/%d/spirometry', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "spirometry_*.txt" %s',
+    '%s/prepare_data %s %s %s -g "spirometry_*.txt"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
-    VERBOSE ? '-v' : ''
+    $option_string
   ) );
 }
