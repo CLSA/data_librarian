@@ -92,21 +92,6 @@ class actigraph extends base
         self::move_from_temporary_to_invalid( $filename, $reason );
         continue;
       }
-      else
-      {
-        // check if a file of that type already exists
-        $existing_files = glob( sprintf( '%s/%s*\.gt3x', $destination_dir, $type ) );
-        if( count( $existing_files ) )
-        {
-          $reason = sprintf(
-            'File type "%s" already exists here "%s".',
-            $type,
-            current( $existing_files )
-          );
-          self::move_from_temporary_to_invalid( $filename, $reason );
-          continue;
-        }
-      }
 
       // make sure the date aligns with the participant's events
       $date_object = new \DateTime( $date );
@@ -139,12 +124,49 @@ class actigraph extends base
         continue;
       }
 
-      $destination = sprintf( '%s/%s_%s.gt3x', $destination_dir, $type, $date );
-
-      if( self::process_file( $destination_dir, $filename, $destination ) )
+      // If an actigraph already exists in the destination then only overwrite if the new
+      // file is younger, otherwise ignore it
+      $proceed = true;
+      $existing_files = glob( sprintf( '%s/%s*\.gt3x', $destination_dir, $type ) );
+      if( count( $existing_files ) )
       {
-        $processed_uid_list[] = $uid;
-        $file_count++;
+        foreach( $existing_files as $existing_file )
+        {
+          $matches = [];
+          if( preg_match( '/.*_([0-9]{4}-[0-9]{2}-[0-9]{2})\.gt3x/', $existing_file, $matches ) )
+          {
+            $existing_date = $matches[1];
+            if( date( $date ) <= date( $existing_date ) )
+            {
+              // delete the local file if it isn't newer than the existing file
+              if( VERBOSE ) output( sprintf(
+                'Ignoring %s as there already exists a more recent copy',
+                $filename
+              ) );
+              self::unlink( $filename );
+              $proceed = false;
+            }
+            else
+            {
+              // remove the existing file as it will be replaced with the new one
+              self::unlink( $existing_file );
+            }
+
+            // there should only ever be one matching actigraph file (by type)
+            break;
+          }
+        }
+      }
+
+      if( $proceed )
+      {
+        $destination = sprintf( '%s/%s_%s.gt3x', $destination_dir, $type, $date );
+
+        if( self::process_file( $destination_dir, $filename, $destination ) )
+        {
+          $processed_uid_list[] = $uid;
+          $file_count++;
+        }
       }
     }
 
