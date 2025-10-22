@@ -124,41 +124,44 @@ class actigraph extends base
         continue;
       }
 
-      // If an actigraph already exists in the destination then only overwrite if the new
-      // file is younger, otherwise ignore it
-      $proceed = true;
       $existing_files = glob( sprintf( '%s/%s*\.gt3x', $destination_dir, $type ) );
       if( count( $existing_files ) )
       {
+        // If an actigraph of the same type already exists in the destination folder then check if it matches
+        // perfectly.  If it does then ignore and delete it, otherwise move it to the invalid folder as it may
+        // be a data mismatch.
         foreach( $existing_files as $existing_file )
         {
-          $matches = [];
-          if( preg_match( '/.*_([0-9]{4}-[0-9]{2}-[0-9]{2})\.gt3x/', $existing_file, $matches ) )
-          {
-            $existing_date = $matches[1];
-            if( date( $date ) <= date( $existing_date ) )
-            {
-              // delete the local file if it isn't newer than the existing file
-              if( VERBOSE ) output( sprintf(
-                'Ignoring %s as there already exists a more recent copy',
-                $filename
-              ) );
-              self::unlink( $filename );
-              $proceed = false;
-            }
-            else
-            {
-              // remove the existing file as it will be replaced with the new one
-              self::unlink( $existing_file );
-            }
+          $ignore = false;
 
-            // there should only ever be one matching actigraph file (by type)
+          $command = sprintf(
+            'diff -q %s %s',
+            \util::format_filename( $filename ),
+            \util::format_filename( $existing_file )
+          );
+          if( 0 == strlen( exec( $command ) ) )
+          {
+            // delete the local file
+            $ignore = true;
+            if( VERBOSE ) output( sprintf(
+              'Ignoring %s as it already exists.',
+              $filename
+            ) );
+            self::unlink( $filename );
             break;
           }
         }
-      }
 
-      if( $proceed )
+        if( !$ignore )
+        {
+          $reason = sprintf(
+            'File mismatch detected in actigraph file "%s", data may belong to different participant.',
+            $filename
+          );
+          self::move_from_temporary_to_invalid( $filename, $reason );
+        }
+      }
+      else // there is no matching file, so process the new one
       {
         $destination = sprintf( '%s/%s_%s.gt3x', $destination_dir, $type, $date );
 
