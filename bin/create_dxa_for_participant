@@ -33,7 +33,7 @@ function create_dxa_for_participant( $type, $identifier, $dicom_filename, $image
     'height' => 115, // the height of the label
   ];
 
-  if( 'forearm' == $type && 1200 == $width && 1320 == $height )
+  if( 'forearm' == $type && 1200 == $width && ( 1320 <= $height && $height <= 1420 ) )
   {
     // use the default measurements
   }
