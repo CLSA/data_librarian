@@ -262,7 +262,19 @@ abstract class base
       if( !is_null( $frax_metadata ) )
       {
         $frax_obj = json_decode( $frax_metadata['value'] );
-        if( is_object( $frax_obj ) && property_exists( $frax_obj, 'metadata' ) ) $frax_data = $frax_obj->metadata;
+        if( is_object( $frax_obj ) )
+        {
+          if( property_exists( $frax_obj, 'metadata' ) )
+          {
+            $frax_data = $frax_obj->metadata;
+            if( property_exists( $frax_obj, 'session' ) )
+            {
+              $frax_data['height'] = $frax_obj->session->height;
+              $frax_data['weight'] = $frax_obj->session->weight;
+              $frax_data['body_mass_index'] = $frax_obj->session->body_mass_index;
+            }
+          }
+        }
       }
     }
 
@@ -352,13 +364,20 @@ abstract class base
         'glucocorticoid',
         'rheumatoid_arthritis',
         'secondary_osteoporosis',
-        'alcohol'
+        'alcohol',
+        'height',
+        'weight',
+        'body_mass_index'
       ];
       foreach( $frax_column_list as $column )
       {
         if( property_exists( $frax_data, $column ) )
         {
-          $upsert_data[] = sprintf( '%s = %d', $column, $frax_data->$column );
+          $upsert_data[] = sprintf(
+            in_array( $column, ['height', 'weight', 'body_mass_index'] ) ? '%s = %0.1f' : '%s = %d',
+            $column,
+            $frax_data->$column
+          );
         }
       }
     }
