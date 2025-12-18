@@ -374,7 +374,7 @@ abstract class base
         if( property_exists( $frax_data, $column ) )
         {
           $upsert_data[] = sprintf(
-            in_array( $column, ['height', 'weight', 'body_mass_index'] ) ? '%s = %0.1f' : '%s = %d',
+            in_array( $column, ['height', 'weight', 'body_mass_index'] ) ? '%s = %0.2f' : '%s = %d',
             $column,
             $frax_data->$column
           );
