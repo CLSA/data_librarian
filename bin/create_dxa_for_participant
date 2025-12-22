@@ -12,8 +12,10 @@ require_once( __DIR__.'/../lib/arguments.class.php' );
  */
 function create_dxa_for_participant( $type, $identifier, $dicom_filename, $image_filename )
 {
-  $size = explode( ' ', @shell_exec( sprintf( 'identify -format "%%w %%h" %s', $dicom_filename ) ) );
-  if( 2 != count( $size ) ) return 'Invalid file';
+  $output = shell_exec( sprintf( 'identify -format "%%w %%h" %s 2>/dev/null', $dicom_filename ) );
+  if( is_null( $output ) ) return 'Cannot determine image dimensions.';
+  $size = explode( ' ', $output );
+  if( 2 != count( $size ) ) return 'Invalid response when determining image dimensions.';
   $width = (int) $size[0];
   $height = (int) $size[1];
 
