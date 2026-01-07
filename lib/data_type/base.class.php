@@ -269,9 +269,9 @@ abstract class base
             $frax_data = $frax_obj->metadata;
             if( property_exists( $frax_obj, 'session' ) )
             {
-              $frax_data['height'] = $frax_obj->session->height;
-              $frax_data['weight'] = $frax_obj->session->weight;
-              $frax_data['body_mass_index'] = $frax_obj->session->body_mass_index;
+              $frax_data->height = $frax_obj->session->height;
+              $frax_data->weight = $frax_obj->session->weight;
+              $frax_data->body_mass_index = $frax_obj->session->body_mass_index;
             }
           }
         }
