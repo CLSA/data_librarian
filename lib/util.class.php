@@ -1,7 +1,7 @@
 <?php
 ini_set( 'display_errors', '0' );
 error_reporting( E_ALL | E_STRICT );
-ini_set( 'date.timezone', 'US/Eastern' );
+ini_set( 'date.timezone', 'America/Toronto' );
 
 function out( $message ) { if( !defined( 'DEBUG' ) || !DEBUG ) printf( "%s\n", $message ); }
 function output( $message ) { printf( "%s> %s\n", date( 'Y-m-d (D) H:i:s' ), $message ); }
