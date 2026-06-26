@@ -25,15 +25,18 @@ $arguments->add_option(
   'c',
   'data_category',
   'Must be one of the following:'.
+    "\n       ACTIGRAPH".
+    "\n         actigraph_thigh_f3, actigraph_thigh_f4 (original gt3x file)".
+    "\n         actigraph_wrist_f3, actigraph_wrist_f4 (original gt3x file)".
+    "\n       CAROTID INTIMA".
+    "\n         cimt_cineloop_bl, cimt_cineloop_f1, cimt_cineloop_f2, cimt_cineloop_f3 (original dcm file)".
+    "\n         cimt_report_bl, cimt_report_f1, cimt_report_f2, cimt_report_f3 (original dcm file)".
+    "\n         cimt_still_bl, cimt_still_f1, cimt_still_f2, cimt_still_f3 (original dcm file)".
     "\n       DXA".
     "\n         dxa_forearm_bl, dxa_forearm_f1, dxa_forearm_f2, dxa_forearm_f3 (jpeg images, right and left)".
     "\n         dxa_hip_bl, dxa_hip_f1, dxa_hip_f2 (reanalysed jpeg images, right and left)".
     "\n         dxa_lateral_bl, dxa_lateral_f1, dxa_lateral_f2, dxa_lateral_f3 (original dcm file)".
     "\n         dxa_wbody_bl (reanalysed jpeg images, BCA and BMD)".
-    "\n       CAROTID INTIMA".
-    "\n        cimt_cineloop_bl, cimt_cineloop_f1, cimt_cineloop_f2, cimt_cineloop_f3 (original dcm file)".
-    "\n        cimt_report_bl, cimt_report_f1, cimt_report_f2, cimt_report_f3 (original dcm file)".
-    "\n        cimt_still_bl, cimt_still_f1, cimt_still_f2, cimt_still_f3 (original dcm file)".
     "\n       ECG".
     "\n         ecg_bl, ecg_f1, ecg_f2, ecg_f3 (automatically generated jpeg image)".
     "\n         ecg_raw_bl, ecg_raw_f1, ecg_raw_f2, ecg_raw_f3 (original xml raw data)".
@@ -60,18 +63,10 @@ $type = NULL;
 $phase = NULL;
 
 // Add any new data categories here
-if( 'dxa_forearm_bl' == $data_category ) { $type = 'forearm'; $phase = 1; }
-else if( 'dxa_forearm_f1' == $data_category ) { $type = 'forearm'; $phase = 2; }
-else if( 'dxa_forearm_f2' == $data_category ) { $type = 'forearm'; $phase = 3; }
-else if( 'dxa_forearm_f3' == $data_category ) { $type = 'forearm'; $phase = 4; }
-else if( 'dxa_hip_bl' == $data_category ) { $type = 'hip'; $phase = 1; }
-else if( 'dxa_hip_f1' == $data_category ) { $type = 'hip'; $phase = 2; }
-else if( 'dxa_hip_f2' == $data_category ) { $type = 'hip'; $phase = 3; }
-else if( 'dxa_lateral_bl' == $data_category ) { $type = 'lateral'; $phase = 1; }
-else if( 'dxa_lateral_f1' == $data_category ) { $type = 'lateral'; $phase = 2; }
-else if( 'dxa_lateral_f2' == $data_category ) { $type = 'lateral'; $phase = 3; }
-else if( 'dxa_lateral_f3' == $data_category ) { $type = 'lateral'; $phase = 4; }
-else if( 'dxa_wbody_bl' == $data_category ) { $type = 'wbody'; $phase = 1; }
+if( 'actigraph_thigh_f3' == $data_category ) { $type = 'actigraph_thigh'; $phase = 4; }
+else if( 'actigraph_thigh_f4' == $data_category ) { $type = 'actigraph_thigh'; $phase = 5; }
+else if( 'actigraph_wrist_f3' == $data_category ) { $type = 'actigraph_wrist'; $phase = 4; }
+else if( 'actigraph_wrist_f4' == $data_category ) { $type = 'actigraph_wrist'; $phase = 5; }
 else if( 'cimt_cineloop_bl' == $data_category ) { $type = 'cimt_cineloop'; $phase = 1; }
 else if( 'cimt_cineloop_f1' == $data_category ) { $type = 'cimt_cineloop'; $phase = 2; }
 else if( 'cimt_cineloop_f2' == $data_category ) { $type = 'cimt_cineloop'; $phase = 3; }
@@ -84,6 +79,18 @@ else if( 'cimt_still_bl' == $data_category ) { $type = 'cimt_still'; $phase = 1;
 else if( 'cimt_still_f1' == $data_category ) { $type = 'cimt_still'; $phase = 2; }
 else if( 'cimt_still_f2' == $data_category ) { $type = 'cimt_still'; $phase = 3; }
 else if( 'cimt_still_f3' == $data_category ) { $type = 'cimt_still'; $phase = 4; }
+else if( 'dxa_forearm_bl' == $data_category ) { $type = 'forearm'; $phase = 1; }
+else if( 'dxa_forearm_f1' == $data_category ) { $type = 'forearm'; $phase = 2; }
+else if( 'dxa_forearm_f2' == $data_category ) { $type = 'forearm'; $phase = 3; }
+else if( 'dxa_forearm_f3' == $data_category ) { $type = 'forearm'; $phase = 4; }
+else if( 'dxa_hip_bl' == $data_category ) { $type = 'dxa_hip'; $phase = 1; }
+else if( 'dxa_hip_f1' == $data_category ) { $type = 'dxa_hip'; $phase = 2; }
+else if( 'dxa_hip_f2' == $data_category ) { $type = 'dxa_hip'; $phase = 3; }
+else if( 'dxa_lateral_bl' == $data_category ) { $type = 'dxa_lateral'; $phase = 1; }
+else if( 'dxa_lateral_f1' == $data_category ) { $type = 'dxa_lateral'; $phase = 2; }
+else if( 'dxa_lateral_f2' == $data_category ) { $type = 'dxa_lateral'; $phase = 3; }
+else if( 'dxa_lateral_f3' == $data_category ) { $type = 'dxa_lateral'; $phase = 4; }
+else if( 'dxa_wbody_bl' == $data_category ) { $type = 'dxa_wbody'; $phase = 1; }
 else if( 'ecg_bl' == $data_category ) { $type = 'ecg'; $phase = 1; }
 else if( 'ecg_f1' == $data_category ) { $type = 'ecg'; $phase = 2; }
 else if( 'ecg_f2' == $data_category ) { $type = 'ecg'; $phase = 3; }
@@ -116,61 +123,11 @@ if( $keep_files ) $option_string .= ' -k';
 if( !is_null( $limit ) ) $option_string .= sprintf( ' -l %d', $limit );
 
 // Implement any new data categories here
-if( 'forearm' == $type )
+if( 'actigraph_thigh' == $type )
 {
-  $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
+  $data_path = sprintf( '%s/clsa/%d/actigraph', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_forearm_left.jpeg"%s',
-    __DIR__,
-    $release_name,
-    $data_path,
-    $identifier_filename,
-    $option_string
-  ) );
-
-  // only prepare left scans when limiting the number of participants
-  if( is_null( $limit ) )
-  {
-    passthru( sprintf(
-      '%s/prepare_data %s %s %s -g "dxa_forearm_right.jpeg"%s',
-      __DIR__,
-      $release_name,
-      $data_path,
-      $identifier_filename,
-      $option_string
-    ) );
-  }
-}
-else if( 'hip' == $type )
-{
-  $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
-  passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_hip_left.reanalysed.jpeg"%s',
-    __DIR__,
-    $release_name,
-    $data_path,
-    $identifier_filename,
-    $option_string
-  ) );
-
-  // only prepare left scans when limiting the number of participants
-  if( is_null( $limit ) )
-  {
-    passthru( sprintf(
-      '%s/prepare_data %s %s %s -g "dxa_hip_right.reanalysed.jpeg"%s',
-      __DIR__,
-      $release_name,
-      $data_path,
-      $identifier_filename,
-      $option_string
-    ) );
-  }
-}
-else if( 'lateral' == $type )
-{
-  $data_path = sprintf( '%s/clsa/%d/dxa', RAW_DIR, $phase );
-  passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_lateral.dcm"%s',
+    '%s/prepare_data %s %s %s -g "thigh_*.gt3x"%s',
     __DIR__,
     $release_name,
     $data_path,
@@ -178,30 +135,17 @@ else if( 'lateral' == $type )
     $option_string
   ) );
 }
-else if( 'wbody' == $type )
+else if( 'actigraph_wrist' == $type )
 {
-  $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
+  $data_path = sprintf( '%s/clsa/%d/actigraph', RAW_DIR, $phase );
   passthru( sprintf(
-    '%s/prepare_data %s %s %s -g "dxa_wbody_bca.reanalysed.jpeg"%s',
+    '%s/prepare_data %s %s %s -g "wrist_*.gt3x"%s',
     __DIR__,
     $release_name,
     $data_path,
     $identifier_filename,
     $option_string
   ) );
-
-  // only prepare left scans when limiting the number of participants
-  if( is_null( $limit ) )
-  {
-    passthru( sprintf(
-      '%s/prepare_data %s %s %s -g "dxa_wbody_bmd.reanalysed.jpeg"%s',
-      __DIR__,
-      $release_name,
-      $data_path,
-      $identifier_filename,
-      $option_string
-    ) );
-  }
 }
 else if( 'cimt_cineloop' == $type )
 {
@@ -240,6 +184,93 @@ else if( 'cimt_still' == $type )
     1 == $phase ? 'still' : 'still[123]',
     $option_string
   ) );
+}
+else if( 'forearm' == $type )
+{
+  $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
+  passthru( sprintf(
+    '%s/prepare_data %s %s %s -g "dxa_forearm_left.jpeg"%s',
+    __DIR__,
+    $release_name,
+    $data_path,
+    $identifier_filename,
+    $option_string
+  ) );
+
+  // only prepare left scans when limiting the number of participants
+  if( is_null( $limit ) )
+  {
+    passthru( sprintf(
+      '%s/prepare_data %s %s %s -g "dxa_forearm_right.jpeg"%s',
+      __DIR__,
+      $release_name,
+      $data_path,
+      $identifier_filename,
+      $option_string
+    ) );
+  }
+}
+else if( 'dxa_hip' == $type )
+{
+  $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
+  passthru( sprintf(
+    '%s/prepare_data %s %s %s -g "dxa_hip_left.reanalysed.jpeg"%s',
+    __DIR__,
+    $release_name,
+    $data_path,
+    $identifier_filename,
+    $option_string
+  ) );
+
+  // only prepare left scans when limiting the number of participants
+  if( is_null( $limit ) )
+  {
+    passthru( sprintf(
+      '%s/prepare_data %s %s %s -g "dxa_hip_right.reanalysed.jpeg"%s',
+      __DIR__,
+      $release_name,
+      $data_path,
+      $identifier_filename,
+      $option_string
+    ) );
+  }
+}
+else if( 'dxa_lateral' == $type )
+{
+  $data_path = sprintf( '%s/clsa/%d/dxa', RAW_DIR, $phase );
+  passthru( sprintf(
+    '%s/prepare_data %s %s %s -g "dxa_lateral.dcm"%s',
+    __DIR__,
+    $release_name,
+    $data_path,
+    $identifier_filename,
+    $option_string
+  ) );
+}
+else if( 'dxa_wbody' == $type )
+{
+  $data_path = sprintf( '%s/clsa/%d/dxa', SUPPLEMENTARY_DIR, $phase );
+  passthru( sprintf(
+    '%s/prepare_data %s %s %s -g "dxa_wbody_bca.reanalysed.jpeg"%s',
+    __DIR__,
+    $release_name,
+    $data_path,
+    $identifier_filename,
+    $option_string
+  ) );
+
+  // only prepare left scans when limiting the number of participants
+  if( is_null( $limit ) )
+  {
+    passthru( sprintf(
+      '%s/prepare_data %s %s %s -g "dxa_wbody_bmd.reanalysed.jpeg"%s',
+      __DIR__,
+      $release_name,
+      $data_path,
+      $identifier_filename,
+      $option_string
+    ) );
+  }
 }
 else if( 'ecg' == $type )
 {
