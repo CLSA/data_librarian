@@ -35,14 +35,30 @@ class spirometry extends base
     }
 
     // This data only comes from the Pine Site interview
-    $re1 = '#nosite/Follow-up ([0-9]) Site/SP_AUTO/([^/]+)/report\.pdf$#';
-    $re2 = '#nosite/Follow-up ([0-9]) Site/SP_AUTO/([^/]+)/data\.xml$#';
+    $re1 = '#nosite/Follow-up ([0-9]) Site/SP_AUTO/([^/]+)/config\.tar\.gz$#';
+    $re2 = '#nosite/Follow-up ([0-9]) Site/SP_AUTO/([^/]+)/report\.pdf$#';
+    $re3 = '#nosite/Follow-up ([0-9]) Site/SP_AUTO/([^/]+)/data\.xml$#';
     $processed_uid_list = [];
     $file_count = 0;
     foreach( glob( sprintf( '%s/nosite/Follow-up * Site/SP_AUTO/*/*', $base_dir ) ) as $filename )
     {
       $matches = [];
       if( preg_match( $re1, $filename, $matches ) )
+      {
+        $phase = $matches[1] + 1;
+        $uid = $matches[2];
+
+        $destination_directory = sprintf( '%s/%s/clsa/%s/spirometry/%s', DATA_DIR, RAW_DIR, $phase, $uid );
+        $new_filename = 'config.tar.gz';
+        $destination = sprintf( '%s/%s', $destination_directory, $new_filename );
+
+        if( self::process_file( $destination_directory, $filename, $destination ) )
+        {
+          $processed_uid_list[] = $uid;
+          $file_count++;
+        }
+      }
+      else if( preg_match( $re2, $filename, $matches ) )
       {
         $phase = $matches[1] + 1;
         $uid = $matches[2];
@@ -67,7 +83,7 @@ class spirometry extends base
           );
         }
       }
-      else if( preg_match( $re2, $filename, $matches ) )
+      else if( preg_match( $re3, $filename, $matches ) )
       {
         $phase = $matches[1] + 1;
         $uid = $matches[2];

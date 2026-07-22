@@ -1,6 +1,6 @@
 <?php
 /**
- * DATA_TYPE: cdtt
+ * DATA_TYPE: frax
  * 
  * Bone density DXA DICOM files
  */
@@ -9,25 +9,25 @@ namespace data_type;
 
 require_once( __DIR__.'/base.class.php' );
 
-class cdtt extends base
+class frax extends base
 {
   /**
-   * Processes all cdtt files
+   * Processes all frax files
    */
   public static function process_files()
   {
     $base_dir = sprintf( '%s/%s', DATA_DIR, TEMPORARY_DIR );
 
-    // Process all CDTT data
-    // There is a cdtt.xlsx and config.tar.gz for each participant
-    output( sprintf( 'Processing cdtt files in "%s"', $base_dir ) );
+    // Process all FRAX data
+    // There is only a config.tar.gz file for each participant
+    output( sprintf( 'Processing frax files in "%s"', $base_dir ) );
 
     // This data only comes from the Pine Site interview
     $processed_uid_list = [];
     $file_count = 0;
-    foreach( glob( sprintf( '%s/nosite/Follow-up * Site/CDTT/*/*', $base_dir ) ) as $filename )
+    foreach( glob( sprintf( '%s/nosite/Follow-up * Site/FRAX/*/*', $base_dir ) ) as $filename )
     {
-      $re = '#nosite/Follow-up ([0-9]) Site/CDTT/([^/]+)/(cdtt\.xlsx|config\.tar\.gz)$#';
+      $re = '#nosite/Follow-up ([0-9]) Site/FRAX/([^/]+)/config.tar.gz$#';
       $matches = [];
       if( !preg_match( $re, $filename, $matches ) )
       {
@@ -40,20 +40,15 @@ class cdtt extends base
 
       $phase = $matches[1] + 1;
       $uid = $matches[2];
-      $name = $matches[3];
 
       $destination_directory = sprintf(
-        '%s/%s/clsa/%s/cdtt/%s',
+        '%s/%s/clsa/%s/frax/%s',
         DATA_DIR,
         RAW_DIR,
         $phase,
         $uid
       );
-      $destination = sprintf(
-        '%s/%s',
-        $destination_directory,
-        'cdtt.xlsx' == $name ? 'result_file.xls' : $name
-      );
+      $destination = sprintf( '%s/config.tar.gz', $destination_directory );
 
       if( self::process_file( $destination_directory, $filename, $destination ) )
       {

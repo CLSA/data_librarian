@@ -8,13 +8,18 @@
 passthru( sprintf( '%s/sort_temporary_files -i "Weston HBHA" actigraph', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files -i "Weston HBHA" ticwatch', __DIR__ ) );
 
-// Organize new recordings (from asterosk ser at 4am, and from Pine)
+// Organize new data downloaded from sites and asterisk (at 4am)
 passthru( sprintf( '%s/sort_temporary_files audio', __DIR__ ) );
+passthru( sprintf( '%s/sort_temporary_files blood', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files cdtt', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files choice_rt', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files cimt', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files dxa', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files ecg', __DIR__ ) );
+passthru( sprintf( '%s/sort_temporary_files frax', __DIR__ ) );
+passthru( sprintf( '%s/sort_temporary_files grip', __DIR__ ) );
+passthru( sprintf( '%s/sort_temporary_files hearing', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files retinal', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files spirometry', __DIR__ ) );
+passthru( sprintf( '%s/sort_temporary_files tonometer', __DIR__ ) );
 passthru( sprintf( '%s/sort_temporary_files us_echo', __DIR__ ) );

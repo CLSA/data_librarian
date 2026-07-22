@@ -39,7 +39,7 @@ class retinal extends base
     $file_count = 0;
     foreach( glob( sprintf( '%s/nosite/Follow-up * Site/RET_[RL]/*/*', $base_dir ) ) as $filename )
     {
-      $re = '#nosite/Follow-up ([0-9]) Site/(RET_[RL])/([^/]+)/(EYE|OCT)_(RIGHT|LEFT)\.(jpg|dcm)$#';
+      $re = '#nosite/Follow-up ([0-9]) Site/(RET_[RL])/([^/]+)/((EYE|OCT)_(RIGHT|LEFT)\.(jpg|dcm)|config\.tar\.gz)$#';
       $matches = [];
 
       if( !preg_match( $re, $filename, $matches ) )
@@ -54,10 +54,22 @@ class retinal extends base
       $phase = $matches[1] + 1;
       $question = $matches[2];
       $uid = $matches[3];
-      $image_type = $matches[4];
-      $side = strtolower( $matches[5] );
-      $extension = strtolower( $matches[6] );
-      if( 'jpg' == $extension ) $extension = 'jpeg';
+
+      if( 'config.tar.gz' == $matches[4] )
+      {
+        $config = true;
+        $image_type = NULL;
+        $side = 'RET_R' == $question ? 'right' : 'left';
+        $extension = 'tar.gz';
+      }
+      else
+      {
+        $config = false;
+        $image_type = $matches[5];
+        $side = strtolower( $matches[6] );
+        $extension = strtolower( $matches[7] );
+        if( 'jpg' == $extension ) $extension = 'jpeg';
+      }
 
       $destination_directory = sprintf(
         '%s/%s/clsa/%s/retinal/%s',
@@ -68,7 +80,7 @@ class retinal extends base
       );
       $new_filename = sprintf(
         '%s_%s.%s',
-        'EYE' == $image_type ? 'retinal' : 'oct',
+        $config ? 'config' : ('EYE' == $image_type ? 'retinal' : 'oct'),
         $side,
         $extension
       );

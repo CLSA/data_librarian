@@ -3,14 +3,19 @@
 $data_type_list = [
   'actigraph',
   'audio',
+  'blood',
   'cdtt',
   'choice_rt',
   'cimt',
   'dxa',
   'ecg',
+  'frax',
+  'grip',
+  'hearing',
   'retinal',
   'spirometry',
   'ticwatch',
+  'tonometer',
   'us_echo'
 ];
 

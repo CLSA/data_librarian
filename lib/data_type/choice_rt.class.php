@@ -27,7 +27,7 @@ class choice_rt extends base
     $file_count = 0;
     foreach( glob( sprintf( '%s/nosite/Follow-up * Site/CRT/*/*', $base_dir ) ) as $filename )
     {
-      $re = '#nosite/Follow-up ([0-9]) Site/CRT/([^/]+)/data\.csv$#';
+      $re = '#nosite/Follow-up ([0-9]) Site/CRT/([^/]+)/(data\.csv|config\.tar\.gz)$#';
       $matches = [];
 
       if( !preg_match( $re, $filename, $matches ) )
@@ -41,6 +41,7 @@ class choice_rt extends base
 
       $phase = $matches[1] + 1;
       $uid = $matches[2];
+      $name = $matches[3];
 
       $destination_directory = sprintf(
         '%s/%s/clsa/%s/choice_rt/%s',
@@ -49,7 +50,11 @@ class choice_rt extends base
         $phase,
         $uid
       );
-      $destination = sprintf( '%s/result_file.csv', $destination_directory );
+      $destination = sprintf(
+        '%s/%s',
+        $destination_directory,
+        'data.csv' == $name ? 'result_file.csv' : $name
+      );
 
       if( self::process_file( $destination_directory, $filename, $destination ) )
       {
