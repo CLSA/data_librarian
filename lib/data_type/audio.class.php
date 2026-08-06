@@ -21,7 +21,7 @@ class audio extends base
     // Process all audio recordings
     // There is a directory for each cohort, and a sub-directory for each phase named "f1", "f2", etc.
     // Each of these directories contain a directory based on the participant's CLSA ID, and in it multiple files.
-    // Each file has the format: "<cohort>/<phase>/<uid>/<various>.wav"
+    // Each file has the format: "<cohort>/<phase>/<uid>/<various>.<extention>"
     output( sprintf( 'Processing audio files in "%s"', $base_dir ) );
 
     // start by deleting all non-live instances
@@ -52,9 +52,9 @@ class audio extends base
     $file_count = 0;
 
     $filename_list = array_merge(
-      // pine-based comprehensive recordings
-      glob( sprintf( '%s/nosite/*/*/*/audio.wav', $base_dir ) ),
-      // CATI tracking and onyx-based comprehensive recordings
+      // pine-based comprehensive recordings (wav, ogg, mp3, etc)
+      glob( sprintf( '%s/nosite/*/*/*/audio.*', $base_dir ) ),
+      // CATI tracking and onyx-based comprehensive recordings (wav files only)
       glob( sprintf( '%s/nosite/audio/*/*/*/*.wav', $base_dir ) )
     );
 
@@ -63,15 +63,20 @@ class audio extends base
       $uid = NULL;
       $phase = NULL;
       $study = NULL;
+      $extension = NULL;
       $destination_filename = NULL;
 
       $matches = [];
       // pine-based comprehensive recordings
-      if( preg_match( '#nosite/Follow-up ([0-9]) (Home|Site)/([^/]+)/([^/]+)/audio\.wav$#', $filename, $matches ) )
-      {
+      if( preg_match(
+        '#nosite/Follow-up ([0-9]) (Home|Site)/([^/]+)/([^/]+)/audio\.([^.]+)$#',
+        $filename,
+        $matches
+      ) ) {
         $phase = $matches[1] + 1;
         $variable = $matches[3];
         $uid = $matches[4];
+        $extension = $matches[5];
         $study = 'clsa';
 
         $destination_filename = NULL;
@@ -96,6 +101,7 @@ class audio extends base
         $phase_name = $matches[2];
         $uid = $matches[3];
         $name = $matches[4];
+        $extension = 'wav';
 
         $phase = NULL;
         $study = NULL;
@@ -196,7 +202,7 @@ class audio extends base
           $phase,
           $uid
         );
-        $destination = sprintf( '%s/%s.wav', $destination_directory, $destination_filename );
+        $destination = sprintf( '%s/%s.%s', $destination_directory, $destination_filename, $extension );
 
         if( self::process_file( $destination_directory, $filename, $destination ) )
         {
